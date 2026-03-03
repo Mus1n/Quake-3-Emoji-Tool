@@ -1,0 +1,1 @@
+A web tool for converting stickers and animated emojis (.webp, .webm, .tgs) into Quake 3 OSP2-BE compatible emoji packs. It automatically generates resized frame sequences, shader scripts, and builds ready-to-use .pk3 files for installation.
