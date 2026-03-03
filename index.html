@@ -652,7 +652,7 @@ async function buildPK3(name, frames, mode){
   const blob = await zip.generateAsync({type:"blob"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `emoji_${name}.pk3`;
+  a.download = `zzz-emoji_${name}.pk3`;
   a.click();
 }
 
@@ -794,4 +794,5 @@ gfx/emoji/${name}
 </body>
 
 </html>
+
 
