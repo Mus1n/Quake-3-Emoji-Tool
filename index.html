@@ -1,820 +1,836 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Quake 3 Emoji Tool – Stickers to OSP2-BE Converter</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Free online tool to convert stickers and animated emojis (.webp, .webm, .tgs) into Quake 3 OSP2-BE compatible emoji packs. Generate frame sequences, shaders and ready-to-use .pk3 files instantly.">
-<meta name="keywords" content="quake 3, q3 emoji tool, osp2-be, quake 3 stickers, emoji converter, webm to quake 3, tgs to quake 3, pk3 generator, quake 3 shader generator, quake modding tools">
-<meta name="author" content="Musin">
-<meta name="robots" content="index,follow">
-<meta name="theme-color" content="#000000">
-<link rel="canonical" href="https://mus1n.github.io/Quake-3-Emoji-Tool/">
-
-<meta property="og:title" content="Q3 Emoji Builder – Stickers to OSP2-BE">
-<meta property="og:description" content="Convert modern stickers (.webp, .webm, .tgs) into Quake 3 OSP2-BE emoji packs. Frame resampling, animmap control and instant .pk3 export.">
-<meta property="og:url" content="https://github.com/Mus1n/Quake-3-Emoji-Tool/">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://mus1n.github.io/Quake-3-Emoji-Tool/preview.png">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Q3 Emoji Builder – Convert Stickers to Quake 3">
-<meta name="twitter:description" content="Browser-based converter for stickers and animated emojis to Quake 3 OSP2-BE .pk3 packs. Free and instant.">
-<meta name="twitter:image" content="https://mus1n.github.io/Quake-3-Emoji-Tool/preview.png">
-	
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://unpkg.com/pako@2.1.0/dist/pako.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-
-
-<style>
-:root{
-  color-scheme:dark;
-  --black:#000000;
-  --white:#FFFFFF;
-  --red:#FF0000;
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
-
-body{
-  min-height:100vh;
-  background:var(--black);
-  color:var(--white);
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  display:flex;
-  justify-content:center;
-  padding:18px;
-}
-
-.app{
-  width:100%;
-  max-width:1180px;
-  height:80%;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,0.15);
-  box-shadow:0 18px 45px rgba(0,0,0,0.9);
-  padding:20px;
-}
-
-h1{
-  font-size:1.3rem;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  margin-bottom:6px;
-}
-
-h1 span{color:var(--red);}
-
-.subtitle{
-  font-size:.8rem;
-  color:rgba(255,255,255,0.7);
-  margin-bottom:14px;
-}
-
-.layout{
-  display:grid;
-  grid-template-columns:minmax(0,2fr) minmax(260px,1.2fr);
-  gap:16px;
-}
-
-@media(max-width:900px){
-  .layout{grid-template-columns:1fr}
-}
-
-/* DROPZONE */
-
-#dropbox{
-  position:relative;
-  min-height:420px;
-  border-radius:16px;
-  border:1px dashed rgba(255,255,255,0.25);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  cursor:pointer;
-  transition:.2s;
-}
-
-#dropbox.dragover{
-  border-color:var(--red);
-  box-shadow:0 0 0 1px var(--red);
-}
-
-.drop-hint{
-  position:absolute;
-  inset:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  text-align:center;
-  font-size:.85rem;
-  color:rgba(255,255,255,0.7);
-  background:radial-gradient(circle at center,rgba(0,0,0,.4),rgba(0,0,0,.95));
-  pointer-events:none;
-}
-
-.drop-hint strong{
-  color:var(--white);
-  font-size:.95rem;
-}
-
-#dropbox img,
-#dropbox video{
-  max-width:100%;
-  max-height:100%;
-}
-
-/* CONTROLS */
-
-.controls{
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.25);
-  padding:14px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-  font-size:.85rem;
-}
-
-.controls label{
-  display:block;
-  font-size:.75rem;
-  margin-bottom:4px;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-}
-
-.controls input[type=text],
-.controls input[type=number]{
-  width:100%;
-  padding:6px 8px;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,0.4);
-  background:var(--black);
-  color:var(--white);
-  outline:none;
-  transition:.15s;
-}
-
-.controls input:focus{
-  border-color:var(--red);
-  box-shadow:0 0 0 1px rgba(255,0,0,.5);
-}
-
-.inline{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.lock-btn{
-  border-radius:999px;
-  border:1px solid var(--red);
-  background:#000;
-  color:#fff;
-  padding:1px 10px;
-  font-size:.75rem;
-  cursor:pointer;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  transition:.15s;
-}
-
-.lock-btn:hover{
-  background:var(--red);
-  box-shadow:0 0 12px rgba(255,0,0,.6);
-}
-
-.radio-group{
-  display:flex;
-  gap:80px;
-  font-size:.8rem;
-}
-
-.radio-group input{
-  accent-color:var(--red);
-}
-
-button{
-  border-radius:999px;
-  border:1px solid var(--red);
-  background:#000;
-  color:#fff;
-  padding:9px 14px;
-  font-size:.78rem;
-  cursor:pointer;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  transition:.15s;
-}
-
-button:hover:not(:disabled){
-  background:var(--red);
-  box-shadow:0 0 16px rgba(255,0,0,.6);
-}
-
-button:disabled{
-  opacity:.4;
-  cursor:not-allowed;
-  border-color:rgba(255,255,255,.3);
-}
-
-.desc{
-  font-size:.72rem;
-  color:rgba(255,255,255,.6);
-}
-
-.credits{
-    width:100%;
-    text-align:center;
-    margin-top:18px;
-    padding-top:10px;
-    border-top:1px solid rgba(255,255,255,0.25);
-    font-size:13px;
-    color:#aaa;
-}
-
-.credits a{
-    color:#fff;
-    text-decoration:none;
-    font-weight:600;
-}
-
-.credits a:hover{
-    color:#aa0000;
-}
-
-
-/* Inline animated emoji (single local .webm) */
-.emoji-host{
-  display:inline-block;
-  width:var(--emoji-size,1.8em);
-  height:var(--emoji-size,1.8em);
-  vertical-align:-0.4em;       /* sits nicely on the baseline */
-}
-
-.emoji-host > video,
-.emoji-host > img {
-  width:100%; height:100%; display:block;
-  object-fit:contain; pointer-events:none; /* avoid pausing on click */
-}
-
-.emoji-host > svg,
-.emoji-host > canvas { display:block; width:100%; height:100%; pointer-events:none; }
-
-
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-<h1><span>Quake 3<span emoji="BlackHeart"></span></span>Chat Emoji Maker<span emoji="HorrorEye"></span></h1>
-<div class="subtitle">Drop sticker or (animated) emoji and generate pak.pk3 supported by OSP2-BE</div>
-
-<div class="layout">
-
-<div id="dropbox">
-  <div class="drop-hint">
-    <strong>DROP EMOJI FILE</strong>
-    <div>.tgs • .webp • .webm</div>
-    <div style="opacity:.6">Click or Ctrl+V</div>
-  </div>
-</div>
-
-<div class="controls">
-
-<div>
-<label>Name</label>
-<input type="text" id="emojiName" value="Emoji-Name">
-<div class="desc">Folder and shader name</div>
-</div>
-
-<div>
-<label>Output Size</label>
-<div class="inline">
-<input type="number" id="width" value="64">
-<button class="lock-btn" id="lockBtn">🔒 LOCK</button>
-<input type="number" id="height" value="64">
-</div>
-      <div class="desc">Frame Resolution</div>
-</div>
-
-<div>
-  <label>Save Mode</label>
-  <div class="radio-group">
-    <!-- Wrap each input + label + description in a container -->
-    <div class="radio-item">
-      <label><input type="radio" name="mode" value="single"> Static</label>
-      <div class="desc">Single frame</div>
-    </div>
-
-    <div class="radio-item">
-      <label><input type="radio" name="mode" value="sequence"> Animated</label>
-      <div class="desc">Sequence</div>
-    </div>
-  </div>
-</div>
-
-<div>
-<label>Animmap Speed</label>
-<input type="number" id="animmap" value="16">
-<div class="desc">Ignored in Single mode</div>
-</div>
-
-<div>
-<label>Max Frames</label>
-<input type="number" id="maxframes" value="24">
-<div class="desc">Amount of max animation frames</div>
-</div>
-
-<div>
-  <label><input type="checkbox" id="nomipmaps"> Add nomipmaps</label>
-  <div class="desc">Nomipmaps removes soft edges, emoji has correct gamma. If this paremter is not added,  image has soft edges, but it's brighter (wrong gamma)</div>
-</div>
-
-<button id="downloadBtn" disabled>Download</button>
-
-</div>
-</div>
-	<div class="credits">
-    Made by <a href="https://t.me/Mus1nQ3" target="_blank" rel="noopener noreferrer"><strong>Musin<span emoji="eye-rolling" size="1.4em"></span></strong></a>
-	</div>
-</div>
-
-
-<script>
-const dropbox = document.getElementById("dropbox");
-const widthInput = document.getElementById("width");
-const heightInput = document.getElementById("height");
-const lockBtn = document.getElementById("lockBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const emojiName = document.getElementById("emojiName");
-const animmapInput = document.getElementById("animmap");
-const nomipCheck = document.getElementById("nomipmaps");
-const maxFramesInput = document.getElementById("maxframes");
-
-let loadedFile = null;
-let lockRatio = true;
-let previewElement = null;
-let currentMode = document.querySelector('input[name="mode"]:checked')?.value || "single";
-let activeLottie = null;
-let animationFrameId = null;
-
-// LOCK HEIGHT/WIDTH RATIO
-lockBtn.addEventListener("click", () => {
-  lockRatio = !lockRatio;
-  lockBtn.textContent = lockRatio ? "🔒 LOCK" : "🔓 UNLOCK";
-});
-
-widthInput.addEventListener("input", () => {
-  if(lockRatio) heightInput.value = widthInput.value;
-});
-
-heightInput.addEventListener("input", () => {
-  if(lockRatio) widthInput.value = heightInput.value;
-});
-
-// MODE CHANGE
-document.querySelectorAll('input[name="mode"]').forEach(radio=>{
-  radio.addEventListener("change", ()=>{
-    currentMode = document.querySelector('input[name="mode"]:checked').value;
-    animmapInput.disabled = currentMode === "single";
-    if(loadedFile) previewFile(loadedFile);
-  });
-});
-
-// LIVE SPEED UPDATE (animmap / maxframes)
-function updateLiveSpeed(){
-  if(!loadedFile) return;
-  previewFile(loadedFile);
-}
-
-animmapInput.addEventListener("input", updateLiveSpeed);
-maxFramesInput.addEventListener("input", updateLiveSpeed);
-
-// CLICK DROPBOX
-dropbox.addEventListener("click", ()=>{
-  const fileInput = document.createElement("input");
-  fileInput.type = "file";
-  fileInput.accept = ".tgs,.webp,.webm";
-  fileInput.onchange = async e=>{
-    if(e.target.files[0]) await handleFile(e.target.files[0]);
-  };
-  fileInput.click();
-});
-
-// FILE HANDLING
-async function handleFile(file){
-  loadedFile = file;
-  downloadBtn.disabled = false;
-  emojiName.value = file.name.replace(/\.[^/.]+$/, "");
-
-  const ext = file.name.split(".").pop().toLowerCase();
-
-  if(ext==="webp"){
-    document.querySelector('input[name="mode"][value="single"]').checked = true;
-  } else {
-    document.querySelector('input[name="mode"][value="sequence"]').checked = true;
-  }
-
-  currentMode = document.querySelector('input[name="mode"]:checked').value;
-  animmapInput.disabled = currentMode === "single";
-
-  await previewFile(file);
-}
-
-// DRAG / DROP
-dropbox.addEventListener("dragover", e=>{
-  e.preventDefault();
-  dropbox.classList.add("dragover");
-});
-
-dropbox.addEventListener("dragleave", ()=> dropbox.classList.remove("dragover"));
-
-dropbox.addEventListener("drop", async e=>{
-  e.preventDefault();
-  dropbox.classList.remove("dragover");
-  const file = e.dataTransfer.files[0];
-  if(file) await handleFile(file);
-});
-
-// PASTE
-document.addEventListener("paste", async e=>{
-  const item=[...e.clipboardData.items].find(i=>i.kind==="file");
-  if(item){
-    const file=item.getAsFile();
-    await handleFile(file);
-  }
-});
-
-// PREVIEW
-async function previewFile(file){
-  if(animationFrameId){
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
-
-  dropbox.innerHTML = "";
-  previewElement = null;
-  activeLottie = null;
-
-  const ext = file.name.split(".").pop().toLowerCase();
-  const animSpeed = parseFloat(animmapInput.value) || 16;
-  const maxFrames = parseInt(maxFramesInput.value) || 24;
-
-  // WEBP
-  if(ext==="webp"){
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    await img.decode();
-    dropbox.appendChild(img);
-    previewElement = img;
-    return;
-  }
-
-  // WEBM
-  if(ext==="webm"){
-    const video = document.createElement("video");
-    video.src = URL.createObjectURL(file);
-    video.muted = true;
-    video.playsInline = true;
-
-    await new Promise(r=> video.onloadedmetadata = r);
-    dropbox.appendChild(video);
-    previewElement = video;
-
-    if(currentMode==="single"){
-      video.currentTime = 0;
-      video.pause();
-      return;
-    }
-
-    video.loop = true;
-    video.playbackRate = animSpeed / maxFrames; // ratio = desired frames / total frames
-    await video.play().catch(()=>{});
-    return;
-  }
-
-  // TGS
-  if(ext==="tgs"){
-    const buffer = await file.arrayBuffer();
-    const json = JSON.parse(pako.inflate(new Uint8Array(buffer), {to:"string"}));
-
-    const container = document.createElement("div");
-    container.style.position="absolute";
-    container.style.left="-9999px";
-    document.body.appendChild(container);
-
-    const anim = lottie.loadAnimation({
-      container,
-      renderer:"canvas",
-      loop:false,
-      autoplay:false,
-      animationData:json
-    });
-
-    await new Promise(r=> anim.addEventListener("DOMLoaded", r));
-
-    const lottieCanvas = container.querySelector("canvas");
-
-    const canvas = document.createElement("canvas");
-    canvas.width = lottieCanvas.width;
-    canvas.height = lottieCanvas.height;
-    const ctx = canvas.getContext("2d");
-
-    dropbox.appendChild(canvas);
-    previewElement = canvas;
-    activeLottie = anim;
-
-    const totalFrames = anim.getDuration(true);
-
-    if(currentMode==="single"){
-      anim.goToAndStop(0,true);
-      ctx.drawImage(lottieCanvas,0,0);
-      return;
-    }
-
-    let startTime = performance.now();
-
-    function animate(now){
-      const elapsed = (now - startTime) / 1000; // seconds
-      const frame = (elapsed * animSpeed) % totalFrames; // <-- use animSpeed directly
-
-      anim.goToAndStop(frame,true);
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(lottieCanvas,0,0);
-
-      animationFrameId = requestAnimationFrame(animate);
-    }
-
-    animationFrameId = requestAnimationFrame(animate);
-  }
-}
-
-// DOWNLOAD
-downloadBtn.addEventListener("click", async ()=>{
-  if(!loadedFile) return;
-
-  const w = parseInt(widthInput.value);
-  const h = parseInt(heightInput.value);
-  const name = emojiName.value.trim();
-  const mode = currentMode;
-  const ext = loadedFile.name.split(".").pop().toLowerCase();
-
-  if(ext==="webp") await handleWebP(name, w, h);
-  if(ext==="webm") await handleWebM(name, w, h, mode);
-  if(ext==="tgs") await handleTGS(name, w, h, mode);
-});
-
-async function handleWebP(name, w, h){
-  const img = document.createElement("img");
-  img.src = URL.createObjectURL(loadedFile);
-  await img.decode();
-
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d").drawImage(img,0,0,w,h);
-
-  const blob = await new Promise(r=> canvas.toBlob(r, "image/png"));
-  await buildPK3(name, [blob], "single");
-}
-
-async function handleWebM(name, w, h, mode){
-  const video = document.createElement("video");
-  video.src = URL.createObjectURL(loadedFile);
-  video.muted = true;
-  await new Promise(r=> video.onloadedmetadata = r);
-
-  const frames = [];
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-
-  const maxFrames = mode === "single" ? 1 : (parseInt(maxFramesInput.value) || 24);
-  const step = video.duration / maxFrames;
-
-  for(let i=0;i<maxFrames;i++){
-    video.currentTime = Math.min(i*step, video.duration-0.01);
-    await new Promise(r=> video.onseeked = r);
-    ctx.clearRect(0,0,w,h);
-    ctx.drawImage(video,0,0,w,h);
-    frames.push(await new Promise(r=>canvas.toBlob(r,"image/png")));
-  }
-
-  await buildPK3(name, frames, mode);
-}
-
-async function handleTGS(name, w, h, mode){
-  const buffer = await loadedFile.arrayBuffer();
-  const json = JSON.parse(pako.inflate(new Uint8Array(buffer), {to:"string"}));
-
-  const container = document.createElement("div");
-  container.style.position="absolute";
-  container.style.left="-9999px";
-  document.body.appendChild(container);
-
-  const anim = lottie.loadAnimation({
-    container,
-    renderer:"canvas",
-    loop:false,
-    autoplay:false,
-    animationData:json
-  });
-
-  await new Promise(r=> anim.addEventListener("DOMLoaded", r));
-
-  const total = anim.getDuration(true);
-  const maxFrames = mode === "single" ? 1 : (parseInt(maxFramesInput.value) || 24);
-  const step = total / maxFrames;
-
-  const frames = [];
-  for(let i=0;i<maxFrames;i++){
-    anim.goToAndStop(i*step,true);
-    const srcCanvas = container.querySelector("canvas");
-
-    const resized = document.createElement("canvas");
-    resized.width = w;
-    resized.height = h;
-    resized.getContext("2d").drawImage(srcCanvas,0,0,w,h);
-
-    frames.push(await new Promise(r=>resized.toBlob(r,"image/png")));
-  }
-
-  document.body.removeChild(container);
-  await buildPK3(name, frames, mode);
-}
-
-// BUILD PK3
-async function buildPK3(name, frames, mode){
-  const zip = new JSZip();
-
-  if(mode==="single"){
-    zip.file(`gfx/emoji/${name}.png`, frames[0]);
-  } else {
-    const folder = zip.folder(`gfx/emoji/${name}`);
-    frames.forEach((blob,i)=>{
-      folder.file(`${name}${i+1}.png`, blob);
-    });
-  }
-
-  zip.folder("scripts")
-    .file(`emoji_${name}.shader`, buildShader(name, frames.length, mode));
-
-  const blob = await zip.generateAsync({type:"blob"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `zzz-emoji_${name}.pk3`;
-  a.click();
-}
-
-// SHADER
-function buildShader(name, count, mode){
-  const useNoMip = nomipCheck.checked;
-  const speed = animmapInput.value || 16;
-
-  let stage;
-  if(mode==="single"){
-    stage = `map gfx/emoji/${name}.tga`;
-  } else {
-    stage = `animmap ${speed} `;
-    for(let i=1;i<=count;i++){
-      stage += `gfx/emoji/${name}/${name}${i}.tga `;
-    }
-  }
-
-  return `
-gfx/emoji/${name}
-{
-    nopicmip
-    ${useNoMip?"nomipmaps":""}
-    {
-        ${stage}
-        blendfunc blend
-        rgbGen vertex
-    }
-}
-`;
-}
-</script>
-
-<script>
-/* Emojis support <span emoji="world"> -> src="world.webm" */
-
-
-(function initLocalEmojis(){
-  const BASE = './';  // folder with your emoji assets (.webm/.webp/.tgs)
-
-  // --- Optional: TGS renderer (works only if lottie + pako are loaded on the page)
-  async function renderTGS(el, src, name){
-    if (!window.lottie || !window.pako) return false;
-    try {
-      const res = await fetch(src, { cache: 'force-cache' });
-      if (!res.ok) return false;
-
-      const buf = await res.arrayBuffer();
-      const jsonStr = new TextDecoder().decode(pako.ungzip(new Uint8Array(buf)));
-      const data = JSON.parse(jsonStr);
-
-      const box = document.createElement('div');
-      box.className = 'lottie-emoji';
-      box.setAttribute('aria-label', name);
-      el.replaceChildren(box);
-
-      lottie.loadAnimation({
-        container: box,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData: data,
-        rendererSettings: { preserveAspectRatio: 'xMidYMid meet' }
-      });
-      return true;
-    } catch(_e){ return false; }
-  }
-
-  function upgrade(el) {
-    const name = el.getAttribute('emoji');
-    if (!name) return;
-
-    // optional sizing: <span emoji="world" size="1.4em">
-    const size = el.getAttribute('size');
-    if (size) el.style.setProperty('--emoji-size', size);
-
-    const base   = BASE + name;
-    const webm   = base + '.webm';
-    const webp   = base + '.webp';
-    const tgs    = base + '.tgs';
-
-    // Try .webm first (animated)
-    const v = document.createElement('video');
-    v.autoplay = v.loop = true;
-    v.muted = true;
-    v.playsInline = true;
-    v.preload = 'metadata';
-    v.src = webm;
-    v.setAttribute('aria-label', name);
-
-    // If .webm loads → use it
-    v.addEventListener('loadeddata', () => {
-      el.replaceChildren(v);
-      v.play().catch(()=>{});
-    });
-
-    // If .webm fails → try .webp; if that fails → try .tgs; else render :name:
-    v.addEventListener('error', async () => {
-      // fallback to static .webp
-      const img = document.createElement('img');
-      img.alt = name;
-      img.setAttribute('aria-label', name);
-
-      img.onload = () => {
-        el.replaceChildren(img);
-      };
-
-      img.onerror = async () => {
-        // final try: .tgs (only works if lottie & pako were loaded)
-        const ok = await renderTGS(el, tgs, name);
-        if (!ok) {
-          el.textContent = `:${name}:`;
-        }
-      };
-
-      img.src = webp;
-    });
-
-    el.classList.add('emoji-host');
-    // Start the attempt by appending nothing (avoid flicker); events above will replaceChildren()
-    // If you prefer an immediate placeholder, uncomment:
-    // el.textContent = '...';
-    // Or insert a tiny transparent spacer.
-  }
-
-  function init(){
-    document.querySelectorAll('span[emoji]').forEach(upgrade);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-
-</script>
-
-</body>
-
+   <head>
+      <meta charset="UTF-8">
+      <title>Quake 3 Emoji Tool – Stickers to OSP2-BE Converter</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="Free online tool to convert stickers, emojis, animated emojis, GIFs, and MP4 videos into Quake 3 OSP2-BE compatible emoji packs. Generate frame sequences, shaders, and ready-to-use .pk3 files instantly.">
+      <meta name="keywords" content="stickers, emojis, animated emojis, GIFs, MP4 videos, quake 3, q3 emoji tool, osp2-be, emoji converter, webm to quake 3, tgs to quake 3, pk3 generator, quake 3 shader generator, quake modding tools">
+      <meta name="author" content="Musin">
+      <meta name="robots" content="index,follow">
+      <meta name="theme-color" content="#000000">
+      <link rel="canonical" href="https://mus1n.github.io/Quake-3-Emoji-Tool/">
+      <meta property="og:title" content="Q3 Emoji Builder – Stickers to OSP2-BE">
+      <meta property="og:description" content="Convert modern stickers, emojis, animated emojis, GIFs, and MP4 videos into Quake 3 OSP2-BE emoji packs. Frame resampling, animmap control, and instant .pk3 export.">
+      <meta property="og:url" content="https://github.com/Mus1n/Quake-3-Emoji-Tool/">
+      <meta property="og:type" content="website">
+      <meta property="og:image" content="https://mus1n.github.io/Quake-3-Emoji-Tool/preview.png">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="Q3 Emoji Builder – Convert Stickers to Quake 3">
+      <meta name="twitter:description" content="Browser-based converter for stickers, emojis, animated emojis, GIFs, and MP4 videos to Quake 3 OSP2-BE .pk3 packs. Free and instant.">
+      <meta name="twitter:image" content="https://mus1n.github.io/Quake-3-Emoji-Tool/preview.png">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+      <script src="https://unpkg.com/pako@2.1.0/dist/pako.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+      <style>
+         :root{
+         color-scheme:dark;
+         --black:#000000;
+         --white:#FFFFFF;
+         --red:#FF0000;
+         }
+         *{box-sizing:border-box;margin:0;padding:0}
+         body{
+         min-height:100vh;
+         background:var(--black);
+         color:var(--white);
+         font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+         display:flex;
+         justify-content:center;
+         padding:18px;
+         }
+         .app{
+         width:100%;
+         max-width:1180px;
+         height:80%;
+         border-radius:18px;
+         border:1px solid rgba(255,255,255,0.15);
+         box-shadow:0 18px 45px rgba(0,0,0,0.9);
+         padding:20px;
+         }
+         h1{
+         font-size:1.3rem;
+         text-transform:uppercase;
+         letter-spacing:.12em;
+         margin-bottom:6px;
+         }
+         h1 span{color:var(--red);}
+         .subtitle{
+         font-size:.8rem;
+         color:rgba(255,255,255,0.7);
+         margin-bottom:14px;
+         }
+         .layout{
+         display:grid;
+         grid-template-columns:minmax(0,2fr) minmax(260px,1.2fr);
+         gap:16px;
+         }
+         @media(max-width:900px){
+         .layout{grid-template-columns:1fr}
+         }
+         /* DROPZONE */
+         #dropbox{
+         position:relative;
+         min-height:420px;
+         border-radius:16px;
+         border:1px dashed rgba(255,255,255,0.25);
+         display:flex;
+         align-items:center;
+         justify-content:center;
+         overflow:hidden;
+         cursor:pointer;
+         transition:.2s;
+         }
+         #dropbox.dragover{
+         border-color:var(--red);
+         box-shadow:0 0 0 1px var(--red);
+         }
+         .drop-hint{
+         position:absolute;
+         inset:0;
+         display:flex;
+         flex-direction:column;
+         align-items:center;
+         justify-content:center;
+         gap:6px;
+         text-align:center;
+         font-size:.85rem;
+         color:rgba(255,255,255,0.7);
+         background:radial-gradient(circle at center,rgba(0,0,0,.4),rgba(0,0,0,.95));
+         pointer-events:none;
+         }
+         .drop-hint strong{
+         color:var(--white);
+         font-size:.95rem;
+         }
+         #dropbox img,
+         #dropbox video{
+         max-width:100%;
+         max-height:100%;
+         }
+         /* CONTROLS */
+         .controls{
+         border-radius:16px;
+         border:1px solid rgba(255,255,255,0.25);
+         padding:14px;
+         display:flex;
+         flex-direction:column;
+         gap:14px;
+         font-size:.85rem;
+         }
+         .controls label{
+         display:block;
+         font-size:.75rem;
+         margin-bottom:4px;
+         text-transform:uppercase;
+         letter-spacing:.08em;
+         }
+         .controls input[type=text],
+         .controls input[type=number]{
+         width:100%;
+         padding:6px 8px;
+         border-radius:8px;
+         border:1px solid rgba(255,255,255,0.4);
+         background:var(--black);
+         color:var(--white);
+         outline:none;
+         transition:.15s;
+         }
+         .controls input:focus{
+         border-color:var(--red);
+         box-shadow:0 0 0 1px rgba(255,0,0,.5);
+         }
+         .inline{
+         display:flex;
+         gap:8px;
+         align-items:center;
+         }
+         .lock-btn{
+         border-radius:999px;
+         border:1px solid var(--red);
+         background:#000;
+         color:#fff;
+         padding:1px 10px;
+         font-size:.75rem;
+         cursor:pointer;
+         text-transform:uppercase;
+         letter-spacing:.1em;
+         transition:.15s;
+         }
+         .lock-btn:hover{
+         background:var(--red);
+         box-shadow:0 0 12px rgba(255,0,0,.6);
+         }
+         .radio-group{
+         display:flex;
+         gap:80px;
+         font-size:.8rem;
+         }
+         .radio-group input{
+         accent-color:var(--red);
+         }
+         button{
+         border-radius:999px;
+         border:1px solid var(--red);
+         background:#000;
+         color:#fff;
+         padding:9px 14px;
+         font-size:.78rem;
+         cursor:pointer;
+         text-transform:uppercase;
+         letter-spacing:.12em;
+         transition:.15s;
+         }
+         button:hover:not(:disabled){
+         background:var(--red);
+         box-shadow:0 0 16px rgba(255,0,0,.6);
+         }
+         button:disabled{
+         opacity:.4;
+         cursor:not-allowed;
+         border-color:rgba(255,255,255,.3);
+         }
+         .desc{
+         font-size:.72rem;
+         color:rgba(255,255,255,.6);
+         }
+         .credits{
+         width:100%;
+         text-align:center;
+         margin-top:18px;
+         padding-top:10px;
+         border-top:1px solid rgba(255,255,255,0.25);
+         font-size:13px;
+         color:#aaa;
+         }
+         .credits a{
+         color:#fff;
+         text-decoration:none;
+         font-weight:600;
+         }
+         .credits a:hover{
+         color:#aa0000;
+         }
+         /* Inline animated emoji (single local .webm) */
+         .emoji-host{
+         display:inline-block;
+         width:var(--emoji-size,1.8em);
+         height:var(--emoji-size,1.8em);
+         vertical-align:-0.4em;       /* sits nicely on the baseline */
+         }
+         .emoji-host > video,
+         .emoji-host > img {
+         width:100%; height:100%; display:block;
+         object-fit:contain; pointer-events:none; /* avoid pausing on click */
+         }
+         .emoji-host > svg,
+         .emoji-host > canvas { display:block; width:100%; height:100%; pointer-events:none; }
+      </style>
+   </head>
+   <body>
+      <div class="app">
+         <h1><span>Quake 3<span emoji="BlackHeart"></span></span>Chat Emoji Maker<span emoji="HorrorEye"></span></h1>
+         <div class="subtitle">Drop sticker, emoji, GIF, or MP4 video to generate emoji.pk3 pak supported by OSP2-BE</div>
+         <div class="layout">
+            <div id="dropbox">
+               <div class="drop-hint">
+                  <strong>DROP EMOJI FILE</strong>
+                  <div>.tgs • .webp • .webm • .mp4 • .gif</div>
+                  <div style="opacity:.6">Click or Ctrl+V</div>
+               </div>
+            </div>
+            <div class="controls">
+               <div>
+                  <label>Name</label>
+                  <input type="text" id="emojiName" value="Emoji-Name">
+                  <div class="desc">Folder and shader name</div>
+               </div>
+               <div>
+                  <label>Output Size</label>
+                  <div class="inline">
+                     <input type="number" id="width" value="64">
+                     <button class="lock-btn" id="lockBtn">🔒 LOCK</button>
+                     <input type="number" id="height" value="64">
+                  </div>
+                  <div class="desc">Frame Resolution</div>
+               </div>
+               <div>
+                  <label>Save Mode</label>
+                  <div class="radio-group">
+                     <!-- Wrap each input + label + description in a container -->
+                     <div class="radio-item">
+                        <label><input type="radio" name="mode" value="single"> Static</label>
+                        <div class="desc">Single frame</div>
+                     </div>
+                     <div class="radio-item">
+                        <label><input type="radio" name="mode" value="sequence"> Animated</label>
+                        <div class="desc">Sequence</div>
+                     </div>
+                  </div>
+               </div>
+               <div>
+                  <label>Animmap Speed</label>
+                  <input type="number" id="animmap" value="16">
+                  <div class="desc">Ignored in Single mode</div>
+               </div>
+               <div>
+                  <label>Max Frames</label>
+                  <input type="number" id="maxframes" value="24">
+                  <div class="desc">Amount of max animation frames</div>
+               </div>
+               <div>
+                  <label><input type="checkbox" id="nomipmaps"> Add nomipmaps</label>
+                  <div class="desc">Nomipmaps removes soft edges, emoji has correct gamma. If this paremter is not added,  image has soft edges, but it's brighter (wrong gamma)</div>
+               </div>
+               <button id="downloadBtn" disabled>Download</button>
+            </div>
+         </div>
+         <div class="credits">
+            Made by <a href="https://t.me/Mus1nQ3" target="_blank" rel="noopener noreferrer"><strong>Musin<span emoji="eye-rolling" size="1.4em"></span></strong></a>
+         </div>
+      </div>
+      <script>
+         const dropbox = document.getElementById("dropbox");
+         const widthInput = document.getElementById("width");
+         const heightInput = document.getElementById("height");
+         const lockBtn = document.getElementById("lockBtn");
+         const downloadBtn = document.getElementById("downloadBtn");
+         const emojiName = document.getElementById("emojiName");
+         const animmapInput = document.getElementById("animmap");
+         const nomipCheck = document.getElementById("nomipmaps");
+         const maxFramesInput = document.getElementById("maxframes");
+         
+         let loadedFile = null;
+         let lockRatio = true;
+         let previewElement = null;
+         let currentMode = document.querySelector('input[name="mode"]:checked')?.value || "single";
+         let activeLottie = null;
+         let animationFrameId = null;
+         
+         // LOCK HEIGHT/WIDTH RATIO
+         lockBtn.addEventListener("click", () => {
+           lockRatio = !lockRatio;
+           lockBtn.textContent = lockRatio ? "🔒 LOCK" : "🔓 UNLOCK";
+         });
+         
+         widthInput.addEventListener("input", () => {
+           if(lockRatio) heightInput.value = widthInput.value;
+         });
+         
+         heightInput.addEventListener("input", () => {
+           if(lockRatio) widthInput.value = heightInput.value;
+         });
+         
+         // MODE CHANGE
+         document.querySelectorAll('input[name="mode"]').forEach(radio=>{
+           radio.addEventListener("change", ()=>{
+             currentMode = document.querySelector('input[name="mode"]:checked').value;
+             animmapInput.disabled = currentMode === "single";
+             if(loadedFile) previewFile(loadedFile);
+           });
+         });
+         
+         // LIVE SPEED UPDATE (animmap / maxframes)
+         function updateLiveSpeed(){
+           if(!loadedFile) return;
+           previewFile(loadedFile);
+         }
+         
+         animmapInput.addEventListener("input", updateLiveSpeed);
+         maxFramesInput.addEventListener("input", updateLiveSpeed);
+         
+         // CLICK DROPBOX
+         dropbox.addEventListener("click", ()=>{
+           const fileInput = document.createElement("input");
+           fileInput.type = "file";
+           fileInput.accept = ".tgs,.webp,.webm,.mp4,.gif";
+           fileInput.onchange = async e=>{
+             if(e.target.files[0]) await handleFile(e.target.files[0]);
+           };
+           fileInput.click();
+         });
+         
+         // FILE HANDLING
+         async function handleFile(file){
+           loadedFile = file;
+           downloadBtn.disabled = false;
+           emojiName.value = file.name.replace(/\.[^/.]+$/, "");
+         
+           const ext = file.name.split(".").pop().toLowerCase();
+         
+         if(ext==="webp"){
+           document.querySelector('input[name="mode"][value="single"]').checked = true;
+         } else {
+           document.querySelector('input[name="mode"][value="sequence"]').checked = true;
+         }
+         
+           currentMode = document.querySelector('input[name="mode"]:checked').value;
+           animmapInput.disabled = currentMode === "single";
+         
+           await previewFile(file);
+         }
+         
+         // DRAG / DROP
+         dropbox.addEventListener("dragover", e=>{
+           e.preventDefault();
+           dropbox.classList.add("dragover");
+         });
+         
+         dropbox.addEventListener("dragleave", ()=> dropbox.classList.remove("dragover"));
+         
+         dropbox.addEventListener("drop", async e=>{
+           e.preventDefault();
+           dropbox.classList.remove("dragover");
+           const file = e.dataTransfer.files[0];
+           if(file) await handleFile(file);
+         });
+         
+         // PASTE
+         document.addEventListener("paste", async e=>{
+           const item=[...e.clipboardData.items].find(i=>i.kind==="file");
+           if(item){
+             const file=item.getAsFile();
+             await handleFile(file);
+           }
+         });
+         
+         // PREVIEW
+         async function previewFile(file){
+           if(animationFrameId){
+             cancelAnimationFrame(animationFrameId);
+             animationFrameId = null;
+           }
+         
+           dropbox.innerHTML = "";
+           previewElement = null;
+           activeLottie = null;
+         
+           const ext = file.name.split(".").pop().toLowerCase();
+           const animSpeed = parseFloat(animmapInput.value) || 16;
+           const maxFrames = parseInt(maxFramesInput.value) || 24;
+         
+           // WEBP
+           if(ext==="webp"){
+             const img = document.createElement("img");
+             img.src = URL.createObjectURL(file);
+             await img.decode();
+             dropbox.appendChild(img);
+             previewElement = img;
+             return;
+           }
+         
+         	// GIF
+         	if(ext==="gif"){
+         	  const img = document.createElement("img");
+         	  img.src = URL.createObjectURL(file);
+         	  dropbox.appendChild(img);
+         	  previewElement = img;
+         
+         	  if(currentMode==="single"){
+         		// freeze first frame using canvas
+         		await img.decode();
+         		const canvas = document.createElement("canvas");
+         		canvas.width = img.naturalWidth;
+         		canvas.height = img.naturalHeight;
+         		const ctx = canvas.getContext("2d");
+         		ctx.drawImage(img,0,0);
+         		dropbox.innerHTML="";
+         		dropbox.appendChild(canvas);
+         	  }
+         
+         	  return;
+         	}
+         
+         
+         	// WEBM / MP4
+         	if(ext==="webm" || ext==="mp4"){
+             const video = document.createElement("video");
+             video.src = URL.createObjectURL(file);
+             video.muted = true;
+             video.playsInline = true;
+         
+             await new Promise(r=> video.onloadedmetadata = r);
+             dropbox.appendChild(video);
+             previewElement = video;
+         
+             if(currentMode==="single"){
+               video.currentTime = 0;
+               video.pause();
+               return;
+             }
+         
+             video.loop = true;
+             video.playbackRate = animSpeed / maxFrames; // ratio = desired frames / total frames
+             await video.play().catch(()=>{});
+             return;
+           }
+         
+           // TGS
+           if(ext==="tgs"){
+             const buffer = await file.arrayBuffer();
+             const json = JSON.parse(pako.inflate(new Uint8Array(buffer), {to:"string"}));
+         
+             const container = document.createElement("div");
+             container.style.position="absolute";
+             container.style.left="-9999px";
+             document.body.appendChild(container);
+         
+             const anim = lottie.loadAnimation({
+               container,
+               renderer:"canvas",
+               loop:false,
+               autoplay:false,
+               animationData:json
+             });
+         
+             await new Promise(r=> anim.addEventListener("DOMLoaded", r));
+         
+             const lottieCanvas = container.querySelector("canvas");
+         
+             const canvas = document.createElement("canvas");
+             canvas.width = lottieCanvas.width;
+             canvas.height = lottieCanvas.height;
+             const ctx = canvas.getContext("2d");
+         
+             dropbox.appendChild(canvas);
+             previewElement = canvas;
+             activeLottie = anim;
+         
+             const totalFrames = anim.getDuration(true);
+         
+             if(currentMode==="single"){
+               anim.goToAndStop(0,true);
+               ctx.drawImage(lottieCanvas,0,0);
+               return;
+             }
+         
+             let startTime = performance.now();
+         
+             function animate(now){
+               const elapsed = (now - startTime) / 1000; // seconds
+               const frame = (elapsed * animSpeed) % totalFrames; // <-- use animSpeed directly
+         
+               anim.goToAndStop(frame,true);
+               ctx.clearRect(0,0,canvas.width,canvas.height);
+               ctx.drawImage(lottieCanvas,0,0);
+         
+               animationFrameId = requestAnimationFrame(animate);
+             }
+         
+             animationFrameId = requestAnimationFrame(animate);
+           }
+         }
+         
+         async function handleGIF(name, w, h, mode){
+         
+           if(!("ImageDecoder" in window)){
+             alert("Your browser does not support GIF decoding.");
+             return;
+           }
+         
+           const data = await loadedFile.arrayBuffer();
+         
+           const decoder = new ImageDecoder({
+             data,
+             type: "image/gif"
+           });
+         
+           // IMPORTANT: wait for metadata to load
+           await decoder.tracks.ready;
+         
+           const totalFrames = decoder.tracks.selectedTrack.frameCount;
+         
+           if(!totalFrames || totalFrames < 1){
+             alert("No GIF frames detected.");
+             return;
+           }
+         
+           const maxRequested = parseInt(maxFramesInput.value) || 24;
+         
+           const frameCount = mode === "single"
+             ? 1
+             : Math.min(maxRequested, totalFrames);
+         
+           const canvas = document.createElement("canvas");
+           canvas.width = w;
+           canvas.height = h;
+           const ctx = canvas.getContext("2d");
+         
+           const frames = [];
+         
+           for(let i=0; i < frameCount; i++){
+         
+             const { image } = await decoder.decode({ frameIndex: i });
+         
+             ctx.clearRect(0,0,w,h);
+             ctx.drawImage(image, 0, 0, w, h);
+         
+             const blob = await new Promise(r =>
+               canvas.toBlob(r,"image/png")
+             );
+         
+             frames.push(blob);
+         
+             image.close();
+           }
+         
+           decoder.close();
+         
+           await buildPK3(name, frames, mode);
+         }
+         
+         
+         // DOWNLOAD
+         downloadBtn.addEventListener("click", async ()=>{
+           if(!loadedFile) return;
+         
+           const w = parseInt(widthInput.value);
+           const h = parseInt(heightInput.value);
+           const name = emojiName.value.trim();
+           const mode = currentMode;
+           const ext = loadedFile.name.split(".").pop().toLowerCase();
+         
+         	if(ext==="webp") await handleWebP(name, w, h);
+         	if(ext==="webm" || ext==="mp4") await handleWebM(name, w, h, mode);
+         	if(ext==="tgs") await handleTGS(name, w, h, mode);
+         	if(ext==="gif") await handleGIF(name, w, h, mode);
+         });
+         
+         async function handleWebP(name, w, h){
+           const img = document.createElement("img");
+           img.src = URL.createObjectURL(loadedFile);
+           await img.decode();
+         
+           const canvas = document.createElement("canvas");
+           canvas.width = w;
+           canvas.height = h;
+           canvas.getContext("2d").drawImage(img,0,0,w,h);
+         
+           const blob = await new Promise(r=> canvas.toBlob(r, "image/png"));
+           await buildPK3(name, [blob], "single");
+         }
+         
+         async function handleWebM(name, w, h, mode){
+           const video = document.createElement("video");
+           video.src = URL.createObjectURL(loadedFile);
+           video.muted = true;
+           await new Promise(r=> video.onloadedmetadata = r);
+         
+           const frames = [];
+           const canvas = document.createElement("canvas");
+           canvas.width = w;
+           canvas.height = h;
+           const ctx = canvas.getContext("2d");
+         
+           const maxFrames = mode === "single" ? 1 : (parseInt(maxFramesInput.value) || 24);
+           const step = video.duration / maxFrames;
+         
+           for(let i=0;i<maxFrames;i++){
+             video.currentTime = Math.min(i*step, video.duration-0.01);
+             await new Promise(r=> video.onseeked = r);
+             ctx.clearRect(0,0,w,h);
+             ctx.drawImage(video,0,0,w,h);
+             frames.push(await new Promise(r=>canvas.toBlob(r,"image/png")));
+           }
+         
+           await buildPK3(name, frames, mode);
+         }
+         
+         async function handleTGS(name, w, h, mode){
+           const buffer = await loadedFile.arrayBuffer();
+           const json = JSON.parse(pako.inflate(new Uint8Array(buffer), {to:"string"}));
+         
+           const container = document.createElement("div");
+           container.style.position="absolute";
+           container.style.left="-9999px";
+           document.body.appendChild(container);
+         
+           const anim = lottie.loadAnimation({
+             container,
+             renderer:"canvas",
+             loop:false,
+             autoplay:false,
+             animationData:json
+           });
+         
+           await new Promise(r=> anim.addEventListener("DOMLoaded", r));
+         
+           const total = anim.getDuration(true);
+           const maxFrames = mode === "single" ? 1 : (parseInt(maxFramesInput.value) || 24);
+           const step = total / maxFrames;
+         
+           const frames = [];
+           for(let i=0;i<maxFrames;i++){
+             anim.goToAndStop(i*step,true);
+             const srcCanvas = container.querySelector("canvas");
+         
+             const resized = document.createElement("canvas");
+             resized.width = w;
+             resized.height = h;
+             resized.getContext("2d").drawImage(srcCanvas,0,0,w,h);
+         
+             frames.push(await new Promise(r=>resized.toBlob(r,"image/png")));
+           }
+         
+           document.body.removeChild(container);
+           await buildPK3(name, frames, mode);
+         }
+         
+         // BUILD PK3
+         async function buildPK3(name, frames, mode){
+           const zip = new JSZip();
+         
+           if(mode==="single"){
+             zip.file(`gfx/emoji/${name}.png`, frames[0]);
+           } else {
+             const folder = zip.folder(`gfx/emoji/${name}`);
+             frames.forEach((blob,i)=>{
+               folder.file(`${name}${i+1}.png`, blob);
+             });
+           }
+         
+           zip.folder("scripts")
+             .file(`emoji_${name}.shader`, buildShader(name, frames.length, mode));
+         
+           const blob = await zip.generateAsync({type:"blob"});
+           const a = document.createElement("a");
+           a.href = URL.createObjectURL(blob);
+           a.download = `zzz-emoji_${name}.pk3`;
+           a.click();
+         }
+         
+         // SHADER
+         function buildShader(name, count, mode){
+           const useNoMip = nomipCheck.checked;
+           const speed = animmapInput.value || 16;
+         
+           let stage;
+           if(mode==="single"){
+             stage = `map gfx/emoji/${name}.tga`;
+           } else {
+             stage = `animmap ${speed} `;
+             for(let i=1;i<=count;i++){
+               stage += `gfx/emoji/${name}/${name}${i}.tga `;
+             }
+           }
+         
+           return `
+         gfx/emoji/${name}
+         {
+             nopicmip
+             ${useNoMip?"nomipmaps":""}
+             {
+                 ${stage}
+                 blendfunc blend
+                 rgbGen vertex
+             }
+         }
+         `;
+         }
+      </script>
+      <script>
+         /* Emojis support <span emoji="world"> -> src="world.webm" */
+         
+         
+         (function initLocalEmojis(){
+           const BASE = './';  // folder with your emoji assets (.webm/.webp/.tgs)
+         
+           // --- Optional: TGS renderer (works only if lottie + pako are loaded on the page)
+           async function renderTGS(el, src, name){
+             if (!window.lottie || !window.pako) return false;
+             try {
+               const res = await fetch(src, { cache: 'force-cache' });
+               if (!res.ok) return false;
+         
+               const buf = await res.arrayBuffer();
+               const jsonStr = new TextDecoder().decode(pako.ungzip(new Uint8Array(buf)));
+               const data = JSON.parse(jsonStr);
+         
+               const box = document.createElement('div');
+               box.className = 'lottie-emoji';
+               box.setAttribute('aria-label', name);
+               el.replaceChildren(box);
+         
+               lottie.loadAnimation({
+                 container: box,
+                 renderer: 'svg',
+                 loop: true,
+                 autoplay: true,
+                 animationData: data,
+                 rendererSettings: { preserveAspectRatio: 'xMidYMid meet' }
+               });
+               return true;
+             } catch(_e){ return false; }
+           }
+         
+           function upgrade(el) {
+             const name = el.getAttribute('emoji');
+             if (!name) return;
+         
+             // optional sizing: <span emoji="world" size="1.4em">
+             const size = el.getAttribute('size');
+             if (size) el.style.setProperty('--emoji-size', size);
+         
+             const base   = BASE + name;
+             const webm   = base + '.webm';
+             const webp   = base + '.webp';
+             const tgs    = base + '.tgs';
+         
+             // Try .webm first (animated)
+             const v = document.createElement('video');
+             v.autoplay = v.loop = true;
+             v.muted = true;
+             v.playsInline = true;
+             v.preload = 'metadata';
+             v.src = webm;
+             v.setAttribute('aria-label', name);
+         
+             // If .webm loads → use it
+             v.addEventListener('loadeddata', () => {
+               el.replaceChildren(v);
+               v.play().catch(()=>{});
+             });
+         
+             // If .webm fails → try .webp; if that fails → try .tgs; else render :name:
+             v.addEventListener('error', async () => {
+               // fallback to static .webp
+               const img = document.createElement('img');
+               img.alt = name;
+               img.setAttribute('aria-label', name);
+         
+               img.onload = () => {
+                 el.replaceChildren(img);
+               };
+         
+               img.onerror = async () => {
+                 // final try: .tgs (only works if lottie & pako were loaded)
+                 const ok = await renderTGS(el, tgs, name);
+                 if (!ok) {
+                   el.textContent = `:${name}:`;
+                 }
+               };
+         
+               img.src = webp;
+             });
+         
+             el.classList.add('emoji-host');
+             // Start the attempt by appending nothing (avoid flicker); events above will replaceChildren()
+             // If you prefer an immediate placeholder, uncomment:
+             // el.textContent = '...';
+             // Or insert a tiny transparent spacer.
+           }
+         
+           function init(){
+             document.querySelectorAll('span[emoji]').forEach(upgrade);
+           }
+         
+           if (document.readyState === 'loading') {
+             document.addEventListener('DOMContentLoaded', init);
+           } else {
+             init();
+           }
+         })();
+         
+      </script>
+   </body>
 </html>
-
-
-
-
-
