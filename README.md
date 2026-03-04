@@ -5,4 +5,5 @@ It automatically generates resized frame sequences, shader scripts, and builds r
 
 
 Example:
+
 ![LoL](https://github.com/user-attachments/assets/76edc657-ec51-4c92-8936-47989317ab13)
